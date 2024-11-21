@@ -3,9 +3,9 @@ import { router } from './src/routes/postsRouter.js';
 import { connectToDatabase } from './src/config/dbConfig.js';
 
 const app = express();
-
-app.use(router);
+await connectToDatabase(process.env.STRING_CONEXAO);
 app.use(express.json());
+app.use(router);
 
 app.listen(3000, () => {
   console.log('App rodando na porta 3000');
