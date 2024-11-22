@@ -1,10 +1,11 @@
 import fs from 'fs';
-import { getInDataBase, insertPost } from '../model/postModel.js';
+import { getInDataBase, insertPost, updatePost } from '../model/postModel.js';
+import gerarDescricaoComGemini from '../service/geminiService.js';
 
 const getPosts = async (req, res) => {
   const postsFind = await getInDataBase();
 
-  res.status(200).json({ postsFind });
+  res.status(200).json(postsFind);
 };
 
 const createPost = async (req, res) => {
@@ -35,4 +36,25 @@ const uploadImage = async (req, res) => {
   }
 };
 
-export { getPosts, createPost, uploadImage };
+const updateNewPost = async (req, res) => {
+  const id = req.params.id;
+  const urlImage = `http://localhost:3000/${id}.png`;
+
+  try {
+    const imgBuffer = fs.readFileSync(`uploads/${id}.png`);
+    const description = await gerarDescricaoComGemini(imgBuffer);
+    const post = {
+      imagem_url: urlImage,
+      descricao: description,
+      alt: req.body.alt,
+    };
+    const insertInDataBasePost = await updatePost(id, post);
+
+    res.status(201).json(insertInDataBasePost);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'erro na requisição' });
+  }
+};
+
+export { getPosts, createPost, uploadImage, updateNewPost };
